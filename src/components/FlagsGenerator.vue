@@ -7,66 +7,71 @@
 
       <v-card-text>
         <div class="mb-6">
-          <div class="d-flex align-center mb-2">
-            <h3 class="text-h6 mr-6 mb-6 mt-6">内存</h3>
+          <div class="d-flex align-center mb-4">
+            <h3 class="text-h6" style="min-width: 80px">内存设置</h3>
+            
             <v-checkbox
               v-model="syncMemory"
-              label="同步"
+              label="同步分配"
               color="primary"
               density="compact"
-              class="mr-2"
+              class="mr-4 ml-2"
             ></v-checkbox>
+
             <v-btn-toggle
               v-model="unit"
               mandatory
               density="compact"
-              class="mr-4"
+              class="mr-4 elevation-1"
             >
-              <v-btn value="GB" size="small">GB</v-btn>
-              <v-btn value="MB" size="small">MB</v-btn>
+              <v-btn value="GB" size="small" variant="flat">GB</v-btn>
+              <v-btn value="MB" size="small" variant="flat">MB</v-btn>
             </v-btn-toggle>
 
-            <template v-if="syncMemory">
-              <v-text-field
-                v-model.number="memoryDisplay"
-                type="number"
-                :min="unit === 'GB' ? 1 : 1024"
-                :max="unit === 'GB' ? 32 : 32768"
-                density="compact"
-                style="max-width: 120px"
-                :suffix="unit"
-                hide-details
-                variant="outlined"
-                @update:modelValue="validateMemory"
-              ></v-text-field>
-            </template>
-            <template v-else>
-              <v-text-field
-                v-model.number="minMemoryDisplay"
-                type="number"
-                :min="unit === 'GB' ? 1 : 1024"
-                :max="maxPossibleDisplay"
-                density="compact"
-                style="max-width: 120px"
-                :suffix="unit"
-                hide-details
-                variant="outlined"
-                @update:modelValue="validateMinMemory"
-              ></v-text-field>
-              <span class="mx-2">至</span>
-              <v-text-field
-                v-model.number="maxMemoryDisplay"
-                type="number"
-                :min="minPossibleDisplay"
-                :max="unit === 'GB' ? 32 : 32768"
-                density="compact"
-                style="max-width: 120px"
-                :suffix="unit"
-                hide-details
-                variant="outlined"
-                @update:modelValue="validateMaxMemory"
-              ></v-text-field>
-            </template>
+            <div class="d-flex align-center">
+              <template v-if="syncMemory">
+                <v-text-field
+                  v-model.number="memoryDisplay"
+                  type="number"
+                  :min="unit === 'GB' ? 1 : 1024"
+                  :max="unit === 'GB' ? 32 : 32768"
+                  density="compact"
+                  style="width: 120px"
+                  :suffix="unit"
+                  variant="outlined"
+                  hide-details
+                  @update:modelValue="validateMemory"
+                ></v-text-field>
+              </template>
+              
+              <template v-else>
+                <v-text-field
+                  v-model.number="minMemoryDisplay"
+                  type="number"
+                  :min="unit === 'GB' ? 1 : 1024"
+                  :max="maxPossibleDisplay"
+                  density="compact"
+                  style="width: 120px"
+                  :suffix="unit"
+                  variant="outlined"
+                  hide-details
+                  @update:modelValue="validateMinMemory"
+                ></v-text-field>
+                <span class="mx-2 text-caption">至</span>
+                <v-text-field
+                  v-model.number="maxMemoryDisplay"
+                  type="number"
+                  :min="minPossibleDisplay"
+                  :max="unit === 'GB' ? 32 : 32768"
+                  density="compact"
+                  style="width: 120px"
+                  :suffix="unit"
+                  variant="outlined"
+                  hide-details
+                  @update:modelValue="validateMaxMemory"
+                ></v-text-field>
+              </template>
+            </div>
           </div>
 
           <v-slider
@@ -76,10 +81,13 @@
             :max="unit === 'GB' ? 32 : 32768"
             :step="unit === 'GB' ? 1 : 1024"
             thumb-label="always"
-            :color="memoryMB < 4096 ? 'red' : 'primary'"
+            thumb-size="28"
+            track-color="grey-lighten-2"
+            :color="memoryMB < 4096 ? 'orange-darken-2' : 'blue-darken-2'"
+            class="mt-4"
           >
             <template #thumb-label="{ modelValue }">
-              {{ modelValue }}{{ unit }}
+              <span class="text-caption">{{ modelValue }}{{ unit }}</span>
             </template>
           </v-slider>
 
@@ -88,57 +96,85 @@
             type="warning"
             density="compact"
             variant="tonal"
+            class="mt-3"
           >
+            <template #prepend>
+              <v-icon icon="mdi-alert-circle-outline"></v-icon>
+            </template>
             建议至少分配4GB（4096MB）内存给服务器！
           </v-alert>
         </div>
 
-        <v-radio-group v-model="gcType" label="垃圾回收器类型" class="mb-4">
+        <v-divider class="my-6"></v-divider>
+
+        <v-radio-group
+          v-model="gcType"
+          label="垃圾回收器类型"
+          class="mb-4"
+          density="compact"
+        >
           <v-radio
             value="G1GC"
             label="G1GC（Java 8+ 推荐）"
-            color="primary"
+            color="blue-darken-2"
           ></v-radio>
           <v-radio
             value="ZGC"
             label="ZGC（Java 17+ 高性能）"
-            color="primary"
+            color="blue-darken-2"
           ></v-radio>
           <v-radio
             value="Shenandoah"
             label="Shenandoah（低延迟）"
-            color="primary"
+            color="blue-darken-2"
           ></v-radio>
         </v-radio-group>
 
         <v-checkbox
           v-model="aikarFlags"
           label="启用 Aikar's 优化参数"
-          color="primary"
+          color="blue-darken-2"
+          density="compact"
           class="mb-4"
         ></v-checkbox>
 
-        <v-expansion-panels>
+        <v-expansion-panels class="elevation-1">
           <v-expansion-panel>
-            <v-expansion-panel-title>高级选项</v-expansion-panel-title>
+            <v-expansion-panel-title expand-icon="mdi-chevron-down">
+              <v-icon icon="mdi-tune" class="mr-2"></v-icon>
+              高级选项
+            </v-expansion-panel-title>
             <v-expansion-panel-text>
               <v-checkbox
                 v-model="advanced.useStringDeduplication"
-                label="启用字符串去重 (-XX:+UseStringDeduplication)"
+                label="启用字符串去重"
+                color="blue-darken-2"
+                density="compact"
+                hint="-XX:+UseStringDeduplication"
+                persistent-hint
               ></v-checkbox>
-              <v-checkbox
-                v-model="advanced.parallelGCThreads"
-                label="自定义并行GC线程数"
-              ></v-checkbox>
-              <v-text-field
-                v-if="advanced.parallelGCThreads"
-                v-model.number="advanced.threadCount"
-                type="number"
-                label="GC线程数"
-                min="1"
-                max="32"
-                suffix="线程"
-              ></v-text-field>
+              
+              <div class="d-flex align-center">
+                <v-checkbox
+                  v-model="advanced.parallelGCThreads"
+                  label="自定义GC线程数"
+                  color="blue-darken-2"
+                  density="compact"
+                  class="mr-4"
+                ></v-checkbox>
+                <v-text-field
+                  v-if="advanced.parallelGCThreads"
+                  v-model.number="advanced.threadCount"
+                  type="number"
+                  density="compact"
+                  style="width: 150px"
+                  variant="outlined"
+                  min="1"
+                  max="32"
+                  suffix="线程"
+                  hide-details
+                ></v-text-field>
+              </div>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -149,22 +185,24 @@
           readonly
           auto-grow
           rows="3"
-          class="mt-4"
+          class="mt-6"
           variant="outlined"
-          :persistent-hint="true"
+          bg-color="grey-lighten-4"
+          persistent-hint
           hint="复制后粘贴到服务器启动脚本中"
         ></v-textarea>
 
-        <v-btn
-          color="green-darken-2"
-          variant="flat"
-          @click="copyToClipboard"
-          :disabled="!generatedFlags"
-          class="mt-2"
-        >
-          <v-icon start icon="mdi-content-copy"></v-icon>
-          复制参数
-        </v-btn>
+        <div class="d-flex justify-end mt-4">
+          <v-btn
+            color="blue-darken-2"
+            variant="flat"
+            @click="copyToClipboard"
+            :disabled="!generatedFlags"
+            prepend-icon="mdi-content-copy"
+          >
+            复制参数
+          </v-btn>
+        </div>
       </v-card-text>
     </v-card>
   </v-container>
@@ -182,7 +220,7 @@ const memoryMB = ref(4096) // 默认4GB
 const minMemoryMB = ref(4096)
 const maxMemoryMB = ref(4096)
 
-// 垃圾回收器选项
+// 功能选项
 const gcType = ref('G1GC')
 const aikarFlags = ref(true)
 
@@ -199,8 +237,10 @@ const memoryDisplay = computed({
     return unit.value === 'GB' ? memoryMB.value / 1024 : memoryMB.value
   },
   set(value) {
-    const numValue = Number(value)
-    memoryMB.value = unit.value === 'GB' ? numValue * 1024 : numValue
+    const numValue = Math.round(Number(value))
+    memoryMB.value = unit.value === 'GB' 
+      ? Math.max(1, Math.min(32, numValue)) * 1024
+      : Math.max(1024, Math.min(32768, numValue))
   }
 })
 
@@ -209,10 +249,14 @@ const minMemoryDisplay = computed({
     return unit.value === 'GB' ? minMemoryMB.value / 1024 : minMemoryMB.value
   },
   set(value) {
-    const numValue = Number(value)
-    minMemoryMB.value = unit.value === 'GB' ? numValue * 1024 : numValue
-    if (minMemoryMB.value > maxMemoryMB.value) {
-      maxMemoryMB.value = minMemoryMB.value
+    const numValue = Math.round(Number(value))
+    const newVal = unit.value === 'GB' 
+      ? Math.max(1, Math.min(32, numValue)) * 1024
+      : Math.max(1024, Math.min(32768, numValue))
+    
+    minMemoryMB.value = Math.min(newVal, maxMemoryMB.value)
+    if (newVal > maxMemoryMB.value) {
+      maxMemoryMB.value = newVal
     }
   }
 })
@@ -222,10 +266,14 @@ const maxMemoryDisplay = computed({
     return unit.value === 'GB' ? maxMemoryMB.value / 1024 : maxMemoryMB.value
   },
   set(value) {
-    const numValue = Number(value)
-    maxMemoryMB.value = unit.value === 'GB' ? numValue * 1024 : numValue
-    if (maxMemoryMB.value < minMemoryMB.value) {
-      minMemoryMB.value = maxMemoryMB.value
+    const numValue = Math.round(Number(value))
+    const newVal = unit.value === 'GB' 
+      ? Math.max(1, Math.min(32, numValue)) * 1024
+      : Math.max(1024, Math.min(32768, numValue))
+    
+    maxMemoryMB.value = Math.max(newVal, minMemoryMB.value)
+    if (newVal < minMemoryMB.value) {
+      minMemoryMB.value = newVal
     }
   }
 })
@@ -241,26 +289,37 @@ const validateMemory = (value) => {
 const validateMinMemory = (value) => {
   const numValue = Number(value)
   const min = unit.value === 'GB' ? 1 : 1024
-  const max = unit.value === 'GB' ? 32 : 32768
-  minMemoryDisplay.value = Math.min(Math.max(numValue, min), Math.min(max, maxMemoryDisplay.value))
+  const currentMax = unit.value === 'GB' 
+    ? maxMemoryMB.value / 1024 
+    : maxMemoryMB.value
+  minMemoryDisplay.value = Math.min(
+    Math.max(numValue, min),
+    Math.min(currentMax, unit.value === 'GB' ? 32 : 32768)
+  )
 }
 
 const validateMaxMemory = (value) => {
   const numValue = Number(value)
-  const min = unit.value === 'GB' ? 1 : 1024
   const max = unit.value === 'GB' ? 32 : 32768
-  maxMemoryDisplay.value = Math.max(Math.min(numValue, max), Math.max(min, minMemoryDisplay.value))
+  const currentMin = unit.value === 'GB' 
+    ? minMemoryMB.value / 1024 
+    : minMemoryMB.value
+  maxMemoryDisplay.value = Math.max(
+    Math.min(numValue, max),
+    Math.max(currentMin, unit.value === 'GB' ? 1 : 1024)
+  )
 }
 
-// 同步状态变化处理
+// 状态同步处理
 watch(syncMemory, (newVal) => {
   if (newVal) {
     minMemoryMB.value = memoryMB.value
     maxMemoryMB.value = memoryMB.value
+  } else {
+    memoryMB.value = minMemoryMB.value
   }
 })
 
-// 内存值同步处理
 watch(memoryMB, (newVal) => {
   if (syncMemory.value) {
     minMemoryMB.value = newVal
@@ -268,19 +327,14 @@ watch(memoryMB, (newVal) => {
   }
 })
 
-// 单位变化处理
+// 单位切换处理
 watch(unit, (newUnit) => {
+  const converter = newUnit === 'GB' ? 1/1024 : 1024
   if (syncMemory.value) {
-    memoryDisplay.value = newUnit === 'GB' 
-      ? memoryMB.value / 1024 
-      : memoryMB.value
+    memoryDisplay.value = memoryMB.value * converter
   } else {
-    minMemoryDisplay.value = newUnit === 'GB' 
-      ? minMemoryMB.value / 1024 
-      : minMemoryMB.value
-    maxMemoryDisplay.value = newUnit === 'GB' 
-      ? maxMemoryMB.value / 1024 
-      : maxMemoryMB.value
+    minMemoryDisplay.value = minMemoryMB.value * converter
+    maxMemoryDisplay.value = maxMemoryMB.value * converter
   }
 })
 
@@ -290,12 +344,18 @@ const generatedFlags = computed(() => {
   
   // 内存参数
   if (syncMemory.value) {
-    const value = unit.value === 'GB' ? memoryMB.value / 1024 : memoryMB.value
+    const value = unit.value === 'GB' 
+      ? memoryMB.value / 1024 
+      : memoryMB.value
     flags.push(`-Xms${value}${unit.value === 'GB' ? 'G' : 'M'}`)
     flags.push(`-Xmx${value}${unit.value === 'GB' ? 'G' : 'M'}`)
   } else {
-    const xms = unit.value === 'GB' ? minMemoryMB.value / 1024 : minMemoryMB.value
-    const xmx = unit.value === 'GB' ? maxMemoryMB.value / 1024 : maxMemoryMB.value
+    const xms = unit.value === 'GB' 
+      ? minMemoryMB.value / 1024 
+      : minMemoryMB.value
+    const xmx = unit.value === 'GB' 
+      ? maxMemoryMB.value / 1024 
+      : maxMemoryMB.value
     flags.push(`-Xms${xms}${unit.value === 'GB' ? 'G' : 'M'}`)
     flags.push(`-Xmx${xmx}${unit.value === 'GB' ? 'G' : 'M'}`)
   }
@@ -303,7 +363,7 @@ const generatedFlags = computed(() => {
   // 垃圾回收器
   flags.push(`-XX:+Use${gcType.value}`)
 
-  // Aikar's 参数
+  // Aikar's 优化参数
   if (aikarFlags.value) {
     flags.push(
       '-XX:+ParallelRefProcEnabled',
@@ -355,14 +415,21 @@ const copyToClipboard = async () => {
 <style scoped>
 .v-card {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 20px auto;
+  border-radius: 12px;
+  overflow: hidden;
 }
+
 .v-slider {
   min-width: 300px;
 }
-.memory-warning {
-  border-left: 4px solid #ff9800;
-  padding-left: 12px;
-  margin-top: 8px;
+
+.v-text-field {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.v-expansion-panel {
+  border-radius: 8px !important;
 }
 </style>

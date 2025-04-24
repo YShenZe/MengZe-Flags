@@ -1,5 +1,26 @@
-# Vue 3 + Vite
+# MengZe Flags Generator
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Minecraft 服务器 JVM 启动参数生成工具
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 快速使用
+
+1. 访问在线版本：https://flags.mengze.vip/
+2. 设置内存大小（支持GB/MB切换）
+3. 选择垃圾回收器类型
+4. 点击【复制参数】使用生成的配置
+
+## 本地运行
+
+```bash
+git clone https://github.com/YShenZe/MengZe-Flags.git
+cd MengZe-Flags
+npm install
+npm run dev
+```
+
+## 主要功能
+
+- 智能内存分配建议
+- 支持 G1GC/ZGC/Shenandoah 三种GC算法
+- 集成 Aikar's 优化参数
+- 一键复制生成配置

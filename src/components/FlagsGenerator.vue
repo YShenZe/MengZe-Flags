@@ -1,199 +1,294 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-card-title class="bg-blue-darken-2 text-white">
-        <HelloWorld msg="MengZe2 Flags Generator" />
+  <v-container class="pa-4">
+    <v-card max-width="800" class="mx-auto" elevation="2">
+      <v-card-title class="bg-primary text-white">
+        <h2 class="text-h5">MengZe2 Flags Generator</h2>
       </v-card-title>
 
-      <v-card-text>
-        <div class="mb-6">
-          <div class="d-flex align-center mb-2">
-            <h3 class="text-h6 mr-6 mb-6 mt-6">内存</h3>
-            <v-checkbox
-              v-model="syncMemory"
-              label="同步"
-              color="primary"
-              density="compact"
-              class="mr-2"
-            ></v-checkbox>
-            <v-btn-toggle
-              v-model="unit"
-              mandatory
-              density="compact"
-              class="mr-4"
+      <v-card-text class="pa-6">
+        <!-- Memory Section -->
+        <v-row>
+          <v-col cols="12">
+            <h3 class="text-h6 mb-4">内存配置</h3>
+            <v-row align="center">
+              <v-col cols="12" sm="4">
+                <v-checkbox
+                  v-model="syncMemory"
+                  label="同步内存"
+                  color="primary"
+                  density="compact"
+                  aria-label="Toggle synchronized memory"
+                ></v-checkbox>
+              </v-col>
+              <v-col cols="12" sm="8">
+                <v-btn-toggle
+                  v-model="unit"
+                  mandatory
+                  density="compact"
+                  color="primary"
+                  class="mb-2"
+                  stacked
+                >
+                  <v-btn value="GB">GB</v-btn>
+                  <v-btn value="MB">MB</v-btn>
+                </v-btn-toggle>
+              </v-col>
+            </v-row>
+          </v-col>
+
+          <v-col cols="12">
+            <v-row align="center">
+              <v-col cols="12" sm="6" v-if="syncMemory">
+                <v-text-field
+                  v-model.number="memoryDisplay"
+                  label="内存"
+                  type="number"
+                  :min="unit === 'GB' ? 1 : 1024"
+                  :max="unit === 'GB' ? 32 : 32768"
+                  density="compact"
+                  :suffix="unit"
+                  variant="outlined"
+                  hide-details="auto"
+                  :rules="[v => (v >= (unit === 'GB' ? 1 : 1024) && v <= (unit === 'GB' ? 32 : 32768)) || '内存必须在有效范围内']"
+                  @update:modelValue="validateMemory"
+                >
+                  <template #append>
+                    <v-tooltip text="内存分配给服务器的总内存量">
+                      <template #activator="{ props }">
+                        <v-icon v-bind="props">mdi-information</v-icon>
+                      </template>
+                    </v-tooltip>
+                  </template>
+                </v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" v-else>
+                <v-row align="center">
+                  <v-col cols="5">
+                    <v-text-field
+                      v-model.number="minMemoryDisplay"
+                      label="最小内存"
+                      type="number"
+                      :min="unit === 'GB' ? 1 : 1024"
+                      :max="maxPossibleDisplay"
+                      density="compact"
+                      :suffix="unit"
+                      variant="outlined"
+                      hide-details="auto"
+                      :rules="[v => (v >= (unit === 'GB' ? 1 : 1024) && v <= maxMemoryDisplay) || '最小内存无效']"
+                      @update:modelValue="validateMinMemory"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="2" class="text-center">
+                    <span class="text-body-1 font-weight-bold">至</span>
+                  </v-col>
+                  <v-col cols="5">
+                    <v-text-field
+                      v-model.number="maxMemoryDisplay"
+                      label="最大内存"
+                      type="number"
+                      :min="minPossibleDisplay"
+                      :max="unit === 'GB' ? 32 : 32768"
+                      density="compact"
+                      :suffix="unit"
+                      variant="outlined"
+                      hide-details="auto"
+                      :rules="[v => (v >= minMemoryDisplay && v <= (unit === 'GB' ? 32 : 32768)) || '最大内存无效']"
+                      @update:modelValue="validateMaxMemory"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-col>
+
+          <v-col cols="12">
+            <v-slider
+              v-if="syncMemory"
+              v-model="memoryDisplay"
+              :min="unit === 'GB' ? 1 : 1024"
+              :max="unit === 'GB' ? 32 : 32768"
+              :step="unit === 'GB' ? 1 : 256"
+              thumb-label="focus"
+              :color="memoryMB < 4096 ? 'error' : 'primary'"
             >
-              <v-btn value="GB" size="small">GB</v-btn>
-              <v-btn value="MB" size="small">MB</v-btn>
-            </v-btn-toggle>
+              <template #thumb-label="{ modelValue }">
+                {{ modelValue }}{{ unit }}
+              </template>
+            </v-slider>
+          </v-col>
 
-            <template v-if="syncMemory">
-              <v-text-field
-                v-model.number="memoryDisplay"
-                type="number"
-                :min="unit === 'GB' ? 1 : 1024"
-                :max="unit === 'GB' ? 32 : 32768"
-                density="compact"
-                style="max-width: 120px"
-                :suffix="unit"
-                hide-details
-                variant="outlined"
-                @update:modelValue="validateMemory"
-              ></v-text-field>
-            </template>
-            <template v-else>
-              <v-text-field
-                v-model.number="minMemoryDisplay"
-                type="number"
-                :min="unit === 'GB' ? 1 : 1024"
-                :max="maxPossibleDisplay"
-                density="compact"
-                style="max-width: 120px"
-                :suffix="unit"
-                hide-details
-                variant="outlined"
-                @update:modelValue="validateMinMemory"
-              ></v-text-field>
-              <span class="mx-2">至</span>
-              <v-text-field
-                v-model.number="maxMemoryDisplay"
-                type="number"
-                :min="minPossibleDisplay"
-                :max="unit === 'GB' ? 32 : 32768"
-                density="compact"
-                style="max-width: 120px"
-                :suffix="unit"
-                hide-details
-                variant="outlined"
-                @update:modelValue="validateMaxMemory"
-              ></v-text-field>
-            </template>
-          </div>
+          <v-col cols="12" v-if="(syncMemory ? memoryMB : maxMemoryMB) < 4096">
+            <v-alert type="warning" density="compact" variant="tonal">
+              建议至少分配4GB（4096MB）内存给服务器！
+            </v-alert>
+          </v-col>
+        </v-row>
 
-          <v-slider
-            v-if="syncMemory"
-            v-model="memoryDisplay"
-            :min="unit === 'GB' ? 1 : 1024"
-            :max="unit === 'GB' ? 32 : 32768"
-            :step="unit === 'GB' ? 1 : 1024"
-            thumb-label="always"
-            :color="memoryMB < 4096 ? 'red' : 'primary'"
-          >
-            <template #thumb-label="{ modelValue }">
-              {{ modelValue }}{{ unit }}
-            </template>
-          </v-slider>
+        <v-divider class="my-4"></v-divider>
 
-          <v-alert
-            v-if="(syncMemory ? memoryMB : maxMemoryMB) < 4096"
-            type="warning"
-            density="compact"
-            variant="tonal"
-          >
-            建议至少分配4GB（4096MB）内存给服务器！
-          </v-alert>
-        </div>
+        <!-- Garbage Collector Section -->
+        <v-row>
+          <v-col cols="12">
+            <v-radio-group
+              v-model="gcType"
+              label="垃圾回收器类型"
+              aria-label="Select garbage collector type"
+            >
+              <v-radio
+                value="G1GC"
+                label="G1GC（Java 8+ 推荐）"
+                color="primary"
+              ></v-radio>
+              <v-radio
+                value="ZGC"
+                label="ZGC（Java 17+ 高性能）"
+                color="primary"
+              ></v-radio>
+              <v-radio
+                value="Shenandoah"
+                label="Shenandoah（低延迟）"
+                color="primary"
+              ></v-radio>
+            </v-radio-group>
+          </v-col>
+        </v-row>
 
-        <v-radio-group v-model="gcType" label="垃圾回收器类型" class="mb-4">
-          <v-radio
-            value="G1GC"
-            label="G1GC（Java 8+ 推荐）"
-            color="primary"
-          ></v-radio>
-          <v-radio
-            value="ZGC"
-            label="ZGC（Java 17+ 高性能）"
-            color="primary"
-          ></v-radio>
-          <v-radio
-            value="Shenandoah"
-            label="Shenandoah（低延迟）"
-            color="primary"
-          ></v-radio>
-        </v-radio-group>
+        <v-row>
+          <v-col cols="12">
+            <v-checkbox
+              v-model="aikarFlags"
+              label="启用 Aikar's 优化参数"
+              color="primary"
+              aria-label="Enable Aikar's optimization flags"
+            ></v-checkbox>
+          </v-col>
+        </v-row>
 
-        <v-checkbox
-          v-model="aikarFlags"
-          label="启用 Aikar's 优化参数"
-          color="primary"
-          class="mb-4"
-        ></v-checkbox>
+        <v-divider class="my-4"></v-divider>
 
-        <v-expansion-panels>
-          <v-expansion-panel>
-            <v-expansion-panel-title>高级选项</v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <v-checkbox
-                v-model="advanced.useStringDeduplication"
-                label="启用字符串去重 (-XX:+UseStringDeduplication)"
-              ></v-checkbox>
-              <v-checkbox
-                v-model="advanced.parallelGCThreads"
-                label="自定义并行GC线程数"
-              ></v-checkbox>
-              <v-text-field
-                v-if="advanced.parallelGCThreads"
-                v-model.number="advanced.threadCount"
-                type="number"
-                label="GC线程数"
-                min="1"
-                max="32"
-                suffix="线程"
-              ></v-text-field>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
+        <!-- Advanced Options -->
+        <v-row>
+          <v-col cols="12">
+            <v-expansion-panels>
+              <v-expansion-panel>
+                <v-expansion-panel-title>高级选项</v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <p class="text-body-2 mb-4">高级设置适用于优化JVM性能，谨慎修改。</p>
+                  <v-row>
+                    <v-col cols="12">
+                      <v-checkbox
+                        v-model="advanced.useStringDeduplication"
+                        label="启用字符串去重 (-XX:+UseStringDeduplication)"
+                        aria-label="Enable string deduplication"
+                      >
+                        <template #append>
+                          <v-tooltip text="减少字符串对象的内存占用">
+                            <template #activator="{ props }">
+                              <v-icon v-bind="props">mdi-information</v-icon>
+                            </template>
+                          </v-tooltip>
+                        </template>
+                      </v-checkbox>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-checkbox
+                        v-model="advanced.parallelGCThreads"
+                        label="自定义并行GC线程数"
+                        aria-label="Enable custom parallel GC threads"
+                      ></v-checkbox>
+                    </v-col>
+                    <v-col cols="12" sm="6" v-if="advanced.parallelGCThreads">
+                      <v-text-field
+                        v-model.number="advanced.threadCount"
+                        type="number"
+                        label="GC线程数"
+                        min="1"
+                        max="32"
+                        suffix="线程"
+                        variant="outlined"
+                        hide-details="auto"
+                        :rules="[v => (v >= 1 && v <= 32) || '线程数必须在1到32之间']"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-col>
+        </v-row>
 
-        <v-textarea
-          v-model="generatedFlags"
-          label="生成参数"
-          readonly
-          auto-grow
-          rows="3"
-          class="mt-4"
-          variant="outlined"
-          :persistent-hint="true"
-          hint="复制后粘贴到服务器启动脚本中"
-        ></v-textarea>
+        <v-divider class="my-4"></v-divider>
 
-        <v-btn
-          color="green-darken-2"
-          variant="flat"
-          @click="copyToClipboard"
-          :disabled="!generatedFlags"
-          class="mt-2"
-        >
-          <v-icon start icon="mdi-content-copy"></v-icon>
-          复制参数
-        </v-btn>
+        <!-- Generated Flags -->
+        <v-row>
+          <v-col cols="12">
+            <v-textarea
+              v-model="generatedFlags"
+              label="生成参数"
+              readonly
+              disabled
+              auto-grow
+              rows="3"
+              variant="outlined"
+              hint="复制后粘贴到服务器启动脚本中"
+              persistent-hint
+              aria-label="Generated JVM flags"
+            ></v-textarea>
+          </v-col>
+          <v-col cols="12">
+            <v-btn
+              color="primary"
+              variant="flat"
+              :loading="copying"
+              :disabled="!generatedFlags"
+              @click="copyToClipboard"
+              aria-label="Copy generated flags to clipboard"
+            >
+              <v-icon start icon="mdi-content-copy"></v-icon>
+              复制参数
+            </v-btn>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
+
+    <!-- Snackbar for Copy Feedback -->
+    <v-snackbar v-model="snackbar" timeout="2000" color="success">
+      参数已复制到剪贴板！
+      <template #actions>
+        <v-btn color="white" variant="text" @click="snackbar = false">关闭</v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useClipboard } from '@vueuse/core'
-import HelloWorld from '/src/components/HelloWorld.vue'
 
-// 内存相关状态
+// Memory-related states
 const syncMemory = ref(true)
 const unit = ref('GB')
-const memoryMB = ref(4096) // 默认4GB
+const memoryMB = ref(4096) // Default 4GB
 const minMemoryMB = ref(4096)
 const maxMemoryMB = ref(4096)
 
-// 垃圾回收器选项
+// Garbage collector options
 const gcType = ref('G1GC')
 const aikarFlags = ref(true)
 
-// 高级选项
+// Advanced options
 const advanced = ref({
   useStringDeduplication: false,
   parallelGCThreads: false,
   threadCount: 4
 })
 
-// 显示值计算属性
+// Snackbar and copy state
+const copying = ref(false)
+const snackbar = ref(false)
+
+// Display value computed properties
 const memoryDisplay = computed({
   get() {
     return unit.value === 'GB' ? memoryMB.value / 1024 : memoryMB.value
@@ -230,7 +325,15 @@ const maxMemoryDisplay = computed({
   }
 })
 
-// 输入验证
+const minPossibleDisplay = computed(() => {
+  return unit.value === 'GB' ? minMemoryMB.value / 1024 : minMemoryMB.value
+})
+
+const maxPossibleDisplay = computed(() => {
+  return unit.value === 'GB' ? maxMemoryMB.value / 1024 : maxMemoryMB.value
+})
+
+// Input validation
 const validateMemory = (value) => {
   const numValue = Number(value)
   const min = unit.value === 'GB' ? 1 : 1024
@@ -252,7 +355,7 @@ const validateMaxMemory = (value) => {
   maxMemoryDisplay.value = Math.max(Math.min(numValue, max), Math.max(min, minMemoryDisplay.value))
 }
 
-// 同步状态变化处理
+// Sync state handling
 watch(syncMemory, (newVal) => {
   if (newVal) {
     minMemoryMB.value = memoryMB.value
@@ -260,7 +363,7 @@ watch(syncMemory, (newVal) => {
   }
 })
 
-// 内存值同步处理
+// Memory value sync
 watch(memoryMB, (newVal) => {
   if (syncMemory.value) {
     minMemoryMB.value = newVal
@@ -268,7 +371,7 @@ watch(memoryMB, (newVal) => {
   }
 })
 
-// 单位变化处理
+// Unit change handling
 watch(unit, (newUnit) => {
   if (syncMemory.value) {
     memoryDisplay.value = newUnit === 'GB' 
@@ -284,11 +387,11 @@ watch(unit, (newUnit) => {
   }
 })
 
-// 参数生成
+// Generated flags
 const generatedFlags = computed(() => {
   const flags = []
   
-  // 内存参数
+  // Memory parameters
   if (syncMemory.value) {
     const value = unit.value === 'GB' ? memoryMB.value / 1024 : memoryMB.value
     flags.push(`-Xms${value}${unit.value === 'GB' ? 'G' : 'M'}`)
@@ -300,10 +403,10 @@ const generatedFlags = computed(() => {
     flags.push(`-Xmx${xmx}${unit.value === 'GB' ? 'G' : 'M'}`)
   }
 
-  // 垃圾回收器
+  // Garbage collector
   flags.push(`-XX:+Use${gcType.value}`)
 
-  // Aikar's 参数
+  // Aikar's flags
   if (aikarFlags.value) {
     flags.push(
       '-XX:+ParallelRefProcEnabled',
@@ -327,12 +430,12 @@ const generatedFlags = computed(() => {
     )
   }
 
-  // ZGC 特殊参数
+  // ZGC-specific flags
   if (gcType.value === 'ZGC') {
     flags.push('-XX:+ZUncommit', '-XX:+ZProactive')
   }
 
-  // 高级选项
+  // Advanced options
   if (advanced.value.useStringDeduplication) {
     flags.push('-XX:+UseStringDeduplication')
   }
@@ -344,25 +447,18 @@ const generatedFlags = computed(() => {
   return flags.join(' ')
 })
 
-// 复制功能
+// Copy functionality
 const { copy } = useClipboard()
 const copyToClipboard = async () => {
+  copying.value = true
   await copy(generatedFlags.value)
-  alert('参数已复制到剪贴板！')
+  snackbar.value = true
+  copying.value = false
 }
 </script>
 
 <style scoped>
 .v-card {
-  max-width: 800px;
   margin: 0 auto;
-}
-.v-slider {
-  min-width: 300px;
-}
-.memory-warning {
-  border-left: 4px solid #ff9800;
-  padding-left: 12px;
-  margin-top: 8px;
 }
 </style>

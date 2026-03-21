@@ -5,5 +5,5 @@ main:
           image: alpine/git
         stages:
           - script: |
-                git remote add github https://${GITHUB_USER}:${GITHUB_TOKEN}@$MengZe-Flags
+                git remote add github https://${GITHUB_USER}:${GITHUB_TOKEN}@MengZe-Flags
                 git push github HEAD:${CNB_BRANCH} --force
